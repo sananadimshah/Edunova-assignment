@@ -9,7 +9,6 @@ const Create = () => {
       .log(task)
       .then((result) => console.log(result))
       .catch((err) => console.log(err));
-    setTask(" ");
   };
 
   return (

@@ -7,6 +7,12 @@ const isValidId = mongoose.Types.ObjectId.isValid;
 
 const createBook = async (req, res) => {
   try {
+    if (Object.keys(req.boby).length === 0) {
+      return res.status(400).send({
+        status: false,
+        msg: "No parameter is found ,Plz provide detail",
+      });
+    }
     const { bookname, category, userId, rentPerDay } = req.body;
     const reqBody = ["bookname", "category", "userId"];
 
@@ -73,52 +79,53 @@ const createBook = async (req, res) => {
 
 const getBooks = async (req, res) => {
   try {
-    const { bookname, rentRange } = req.query;
+    if (Object.keys(req.query).length === 0) {
+      return res.status(400).send({
+        status: false,
+        msg: "Please pass data to get the listOfBook",
+      });
+    }
+    const { bookname, rentRange, category } = req.query;
+
+    let query = {};
+
+    if (bookname) {
+      query.bookname = { $regex: String(bookname), $options: "i" };
+    }
+
+    if (category) {
+      query.category = category;
+    }
 
     if (rentRange) {
       const rentPrice = rentRange.split("-");
 
-      let minValue = rentPrice[0].trim();
-      let maxValue = rentPrice[1].trim();
+      let minValue = Number(rentPrice[0].trim());
+      let maxValue = Number(rentPrice[1].trim());
 
-      minValue = Number(minValue);
-      maxValue = Number(maxValue);
-
-      const rentPriceRange = await bookModel.find({
-        rentPerDay: { $gte: minValue, $lte: maxValue },
-      });
-
-      if (rentPriceRange.length === 0) {
-        return res.status(404).send({
+      if (rentPrice.length !== 2 || isNaN(minValue) || isNaN(maxValue)) {
+        return res.status(400).send({
           status: false,
-          msg: "Not any Book found with this range",
+          msg: "Invalid rent price range format. Use min-max format, e.g., 100-500",
         });
       }
 
-      return res.status(200).send({
-        status: true,
-        msg: "Rent price range Books found",
-        data: rentPriceRange,
+      query.rentPerDay = { $gte: minValue, $lte: maxValue };
+    }
+
+    const listOfBook = await bookModel.find(query);
+    if (listOfBook.length === 0 || !listOfBook) {
+      return res.status(404).send({
+        status: false,
+        msg: "Not any book found with this term",
       });
     }
-    if (bookname) {
-      const listOfBook = await bookModel.find({
-        bookname: { $regex: String(bookname), $options: "i" },
-      });
 
-      if (listOfBook.length === 0) {
-        return res.status(404).send({
-          status: false,
-          msg: "Not any Book found with this term",
-        });
-      }
-
-      return res.status(200).send({
-        status: true,
-        msg: "Books found",
-        data: listOfBook,
-      });
-    }
+    return res.status(200).send({
+      status: true,
+      msg: "Books found",
+      data: listOfBook,
+    });
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
   }

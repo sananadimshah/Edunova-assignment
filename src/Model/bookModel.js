@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { books } from "../db.js";
+
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const bookSchema = new mongoose.Schema(
@@ -18,12 +20,12 @@ const bookSchema = new mongoose.Schema(
     },
     userId: {
       type: ObjectId,
-      ref: "user",
+      ref: "User",
       required: true,
     },
   },
   { timestamps: true }
 );
-const bookModel = mongoose.model("book", bookSchema);
+const bookModel = books.model("Book", bookSchema);
 
 export default bookModel;

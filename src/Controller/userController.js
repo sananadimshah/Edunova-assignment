@@ -8,6 +8,13 @@ import {
 
 const createUser = async (req, res) => {
   try {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).send({
+        status: false,
+        msg: "No parameter is found ,Plz provide detail",
+      });
+    }
+
     const { title, name, phone, email, password } = req.body;
     const reqBody = ["title", "name", "phone", "email", "password"];
     for (let element of reqBody) {

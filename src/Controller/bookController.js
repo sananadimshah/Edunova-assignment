@@ -7,7 +7,7 @@ const isValidId = mongoose.Types.ObjectId.isValid;
 
 const createBook = async (req, res) => {
   try {
-    if (Object.keys(req.boby).length === 0) {
+    if (Object.keys(req.body).length === 0) {
       return res.status(400).send({
         status: false,
         msg: "No parameter is found ,Plz provide detail",
@@ -46,7 +46,7 @@ const createBook = async (req, res) => {
     }
 
     const bookNameExits = await bookModel.findOne({ bookname });
-
+    console.log(bookNameExits);
     if (bookNameExits) {
       return res.status(400).send({
         status: false,

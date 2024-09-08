@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import { books } from "../db.js";
 const userSchema = new mongoose.Schema(
   {
     title: {
@@ -25,14 +25,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // address: {
-    //     street: { type: String },
-    //     city: { type: String },
-    //     pincode: { type: String },
-    // },},
   },
   { timestamps: true }
 );
-const userModel = mongoose.model("user", userSchema);
+const userModel = books.model("User", userSchema);
 
 export default userModel;

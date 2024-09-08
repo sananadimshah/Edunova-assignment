@@ -31,7 +31,7 @@ const createBook = async (req, res) => {
       });
     }
 
-    if (!isValidId(userId)) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).send({
         status: false,
         msg: "Invalid userId",
@@ -77,7 +77,27 @@ const createBook = async (req, res) => {
   }
 };
 
-const getBooks = async (req, res) => {
+const allBooks = async (req, res) => {
+  try {
+    const findAllBooks = await bookModel.find();
+    if (!findAllBooks) {
+      return res.status(400).send({
+        status: false,
+        msg: "No book found",
+        data: [],
+      });
+    }
+    return res.status(200).send({
+      status: true,
+      msg: "All books detail is successfully fetch",
+      data: findAllBooks,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+const getBooksByQuery = async (req, res) => {
   try {
     if (Object.keys(req.query).length === 0) {
       return res.status(400).send({
@@ -131,12 +151,19 @@ const getBooks = async (req, res) => {
   }
 };
 
-// const createUser = async(req,res) => {
-//     try {
+const getBooksStatus = async (req, res) => {
+  try {
+    const { bookname } = req.params;
+    if (bookname) {
+      return res.status(400).send({
+        status: false,
+        msg: "Bookname is required",
+      });
+      const findBook = await bookModel.find();
+    }
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
 
-//     } catch (error) {
-//         return res.status(500).send({ status: false, msg: err.message })
-//     }
-// };
-
-export { createBook, getBooks };
+export { createBook, getBooksByQuery, allBooks, getBooksStatus };

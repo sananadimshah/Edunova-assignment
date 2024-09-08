@@ -80,4 +80,24 @@ const createUser = async (req, res) => {
   }
 };
 
-export { createUser };
+const allUsers = async (req, res) => {
+  try {
+    const findAllUsers = await userModel.find();
+    if (!findAllUsers) {
+      return res.status(400).send({
+        status: false,
+        msg: "No user found",
+        data: [],
+      });
+    }
+    return res.status(200).send({
+      status: true,
+      msg: "All users detail is successfully fetch",
+      data: findAllUsers,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+export { createUser, allUsers };

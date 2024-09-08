@@ -1,16 +1,27 @@
 import express from "express";
 const router = express.Router();
-import { createUser } from "../Controller/UserController.js";
-import { createBook, getBooks } from "../Controller/bookController.js";
+import { createUser, allUsers } from "../Controller/UserController.js";
+import {
+  createBook,
+  getBooksByQuery,
+  allBooks,
+  getBooksStatus,
+} from "../Controller/bookController.js";
 import { bookIssue, bookReturn } from "../Controller/trancationsController.js";
 
 // User api
 router.post("/createUser", createUser);
 
+router.get("/allUsers", allUsers);
+
 // Book api
 router.post("/createBook", createBook);
 
-router.get("/getBooks", getBooks);
+router.get("/allBooks", allBooks);
+
+router.get("/getBooks", getBooksByQuery);
+
+router.get("/getBooksStatus/:bookname", getBooksStatus);
 
 // Transaction api
 

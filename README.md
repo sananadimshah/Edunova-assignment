@@ -19,5 +19,4 @@ This project is a Book Rental System built using Node.js and MongoDB. It allows 
 
    ```bash
    git clone https://github.com/sananadimshah/AUGMENTIX-To-Do-List-Assigement.git
-   "
    ```

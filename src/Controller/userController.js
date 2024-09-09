@@ -1,4 +1,6 @@
 import userModel from "../Model/userModel.js";
+import transactionModel from "../Model/transactionModel.js";
+import { mongoose } from "mongoose";
 import {
   isValidEmail,
   isValidPassword,
@@ -100,4 +102,49 @@ const allUsers = async (req, res) => {
   }
 };
 
-export { createUser, allUsers };
+const issuedBooksToUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).send({ status: false, msg: "userId is required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).send({
+        status: false,
+        msg: "Invalid userId",
+      });
+    }
+    const bookIssuedByUser = await transactionModel.find({
+      userId,
+      status: "issued",
+    });
+
+    if (bookIssuedByUser.length === 0) {
+      return res.status(404).send({
+        status: false,
+        msg: "Not any book is issued by this userId",
+      });
+    }
+
+    let issuedBookName = [];
+    if (bookIssuedByUser.length > 0) {
+      for (let book of bookIssuedByUser) {
+        if (book) {
+          issuedBookName.push(book.bookname);
+        }
+      }
+    }
+
+    return res.status(200).send({
+      status: true,
+      msg: "Successfully fetch user issued books",
+      bookName: issuedBookName,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+export { createUser, allUsers, issuedBooksToUser };

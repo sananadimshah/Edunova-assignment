@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bookModel from "../Model/bookModel.js";
 import { isValid, isValidRent } from "../validator/validator.js";
 import userModel from "../Model/userModel.js";
+import transactionModel from "../Model/transactionModel.js";
 
 const isValidId = mongoose.Types.ObjectId.isValid;
 
@@ -154,16 +155,138 @@ const getBooksByQuery = async (req, res) => {
 const getBooksStatus = async (req, res) => {
   try {
     const { bookname } = req.params;
-    if (bookname) {
+    if (!bookname) {
       return res.status(400).send({
         status: false,
         msg: "Bookname is required",
       });
-      const findBook = await bookModel.find();
+    }
+    const bookStatus = await transactionModel.find({ bookname });
+    if (!bookStatus) {
+      return res.status(400).send({
+        status: false,
+        msg: "Book not found",
+      });
+    }
+
+    const previousIssue = bookStatus.filter(
+      (transaction) => transaction.status === "returned"
+    );
+
+    const currentlyIssue = bookStatus.filter(
+      (transaction) => transaction.status === "issued"
+    );
+
+    if (previousIssue.length === 0 || currentlyIssue.length === 0) {
+      return res.status(400).send({
+        status: false,
+        msg: "No one issue the book in the past or present",
+      });
+    }
+
+    let currentUsers = [];
+
+    if (currentlyIssue.length > 0) {
+      for (let transaction of currentlyIssue) {
+        const user = await userModel.findById(transaction.userId);
+        if (user) {
+          currentUsers.push(user.name);
+        }
+      }
+
+      return res.status(200).send({
+        status: true,
+        msg: "Book is currently issued to a user",
+        pastIssuedUserCount: previousIssue.length,
+        currentUsers,
+      });
     }
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
   }
 };
 
-export { createBook, getBooksByQuery, allBooks, getBooksStatus };
+const rentGeneratedByBook = async (req, res) => {
+  try {
+    const { bookname } = req.params;
+    if (!bookname) {
+      return res.status(400).send({
+        status: false,
+        msg: "Bookname is required",
+      });
+    }
+    const bookStatus = await transactionModel.find({ bookname });
+    if (bookStatus.length === 0) {
+      return res.status(404).send({
+        status: false,
+        msg: "Book not found",
+      });
+    }
+
+    const totalRent = bookStatus.reduce((acc, cur) => {
+      return acc + cur.rent || 0;
+    }, 0);
+
+    return res.status(200).send({
+      status: true,
+      msg: "TotalRent of a book",
+      TotalRent: totalRent,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+const getBooksIssuedInRange = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.body;
+
+    if (!startDate || !endDate) {
+      return res.status(400).send({
+        status: false,
+        msg: "startDate and endDate both are required",
+      });
+    }
+
+    const findBook = await transactionModel.find({
+      issueDate: { $gte: new Date(startDate), $lte: new Date(endDate) },
+      status: "issued",
+    });
+
+    if (findBook.length === 0) {
+      return res.status(404).send({
+        status: false,
+        msg: "No book is issued in these period",
+      });
+    }
+
+    const bookIssued = await Promise.all(
+      findBook.map(async (issued) => {
+        const user = await userModel.findById(issued.userId);
+
+        return {
+          bookName: issued.bookname,
+          person: user ? user.name : "Unknown User",
+          issueDate: issued.issueDate,
+        };
+      })
+    );
+
+    return res.status(200).send({
+      status: true,
+      msg: "Booke in this period",
+      bookIssued,
+    });
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+export {
+  createBook,
+  getBooksByQuery,
+  allBooks,
+  getBooksStatus,
+  rentGeneratedByBook,
+  getBooksIssuedInRange,
+};

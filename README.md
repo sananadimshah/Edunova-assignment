@@ -18,5 +18,5 @@ This project is a Book Rental System built using Node.js and MongoDB. It allows 
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/sananadimshah/AUGMENTIX-To-Do-List-Assigement.git
+   git clone https://github.com/sananadimshah/Edunova-assignment.git
    ```
